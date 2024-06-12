@@ -1,0 +1,117 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def accel(x,y,z):
+    r32 = (x*x + y*y + z*z)**1.5
+    return mi*np.array([-x/r32, -y/r32, -z/r32])
+
+def Energy(vx,vy,vz):
+    return mi/2*sum(vx**2+vy**2+vz**2)
+
+def W(x,y,z):
+    val = 0
+    x1 = x*1
+    y1 = y*1
+    z1 = z*1
+    for i in range(n-1):
+        x1 = np.roll(x1,1)
+        y1 = np.roll(y1,1)
+        z1 = np.roll(z1,1)
+        r = ( (x1-x)**2 + (y1-y)**2 + (z1-z)**2 )**0.5
+        val -= 1/r
+    return sum(val*mi**2/2)
+
+def r_dist(x):
+    return x**0.5
+    
+n = 50
+mi = 1/n
+
+r1, r2, r3 = np.random.random(n), np.random.random(n), np.random.random(n)
+r = r_dist(r1)
+theta = np.arccos(2*r2-1)
+phi = 2*np.pi*r3
+
+x = r * np.sin(theta) * np.cos(phi)
+y = r * r_dist(r1)* np.sin(theta) * np.sin(phi)
+z = r * np.cos(theta)
+m = np.ones(n)*mi
+
+r4, r5 = np.random.random(n), np.random.random(n)
+eta1 = np.arccos(2*r4-1)
+eta2 = 2*np.pi*r5
+vx = 0.5 * np.sin(eta1) * np.cos(eta2)
+vy = 0.5 * np.sin(eta1) * np.sin(eta2)
+vz = 0.5 * np.cos(eta1)
+
+t,tmax = 0,2
+h = 0.001
+hh = 0.5*h
+
+tsol = [t*1]
+xsol,ysol,zsol= [x*1],[y*1],[z*1]
+Esol,Wsol = [Energy(vx,vy,vz)],[W(x,y,z)]
+
+count = 0
+while t < tmax :
+    vhx,vhy,vhz = vx*1, vy*1, vz*1
+    for i in range(1,n):# v+0.5
+        x1 = np.roll(x, i)
+        y1 = np.roll(y, i)
+        z1 = np.roll(z, i)
+        
+        f = accel(x-x1, y-y1, z-z1)
+        vhx += hh*f[0]
+        vhy += hh*f[1]
+        vhz += hh*f[2]
+        
+    x += h*vhx
+    y += h*vhy
+    z += h*vhz
+    xsol.append(x*1)
+    ysol.append(y*1)    
+    zsol.append(z*1)
+    vx,vy,vz = vhx*1, vhy*1, vhz*1
+
+    for i in range(1,n):
+        x1 = np.roll(x, i)
+        y1 = np.roll(y, i)
+        z1 = np.roll(z, i)
+        
+        f = accel(x-x1, y-y1, z-z1)
+        vx += hh*f[0]
+        vy += hh*f[1]
+        vz += hh*f[2]
+    t += h
+    Esol.append( Energy(vx,vy,vz) )
+    Wsol.append( W(x,y,z) )
+    tsol.append(t)
+    count += 1
+    if count%1000==0 : print(count//1000)
+
+
+xsol = np.array(xsol)
+ysol = np.array(ysol)
+zsol = np.array(zsol)
+tsol = np.array(tsol)
+color = ['r','orange','y','g','b','midnightblue','purple','r','orange','y','g','b','midnightblue','purple']
+k=0
+
+plt.figure(figsize=(10,10))
+ax = plt.axes(projection='3d')
+ax.set(facecolor='None')
+k=3
+for i in range(k,k+5):
+    ax.plot3D(xsol.T[i][tsol<0.5], ysol.T[i][tsol<0.5], zsol.T[i][tsol<0.5], \
+              c=color[i-k], ls='--', lw=1, alpha=0.1)
+    ax.plot3D(xsol.T[i][abs(tsol-0.8)<0.3], ysol.T[i][abs(tsol-0.8)<0.3], zsol.T[i][abs(tsol-0.8)<0.3], \
+              c=color[i-k], ls='--', lw=1.1, alpha=0.3)
+    ax.plot3D(xsol.T[i][abs(tsol-1.3)<0.2], ysol.T[i][abs(tsol-1.3)<0.2], zsol.T[i][abs(tsol-1.3)<0.2],\
+              c=color[i-k], ls='--', lw=1.2, alpha=0.5)
+    ax.plot3D(xsol.T[i][tsol>=1.5], ysol.T[i][tsol>=1.5], zsol.T[i][tsol>=1.5], \
+              c=color[i-k], ls='--', lw=1.4)
+    ax.plot3D(xsol.T[i][-1], ysol.T[i][-1], zsol.T[i][-1], c=color[i-k], marker='o', ms=15, mfc='w')
+plt.xlim(-1,1)
+plt.ylim(-1,1)
+plt.tight_layout()
+plt.show()
