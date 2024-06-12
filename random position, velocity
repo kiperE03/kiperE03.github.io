@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def accel(x,y,z):
+    r32 = (x*x + y*y + z*z)**1.5
+    return mi*np.array([-x/r32, -y/r32, -z/r32])
+
+def Energy(vx,vy,vz):
+    return mi/2*sum(vx**2+vy**2+vz**2)
+
+def W(x,y,z):
+    val = 0
+    x1 = x*1
+    y1 = y*1
+    z1 = z*1
+    for i in range(n-1):
+        x1 = np.roll(x1,1)
+        y1 = np.roll(y1,1)
+        z1 = np.roll(z1,1)
+        r = ( (x1-x)**2 + (y1-y)**2 + (z1-z)**2 )**0.5
+        val -= 1/r
+    return sum(val*mi**2/2)
+
+def r_dist(x):
+    return x**0.5
+    
+n = 50
+mi = 1/n
+
+r1, r2, r3 = np.random.random(n), np.random.random(n), np.random.random(n)
+r = r_dist(r1)
+theta = np.arccos(2*r2-1)
+phi = 2*np.pi*r3
+
+x = r * np.sin(theta) * np.cos(phi)
+y = r * r_dist(r1)* np.sin(theta) * np.sin(phi)
+z = r * np.cos(theta)
+m = np.ones(n)*mi
+
+r4, r5 = np.random.random(n), np.random.random(n)
+eta1 = np.arccos(2*r4-1)
+eta2 = 2*np.pi*r5
+vx = 0.5 * np.sin(eta1) * np.cos(eta2)
+vy = 0.5 * np.sin(eta1) * np.sin(eta2)
+vz = 0.5 * np.cos(eta1)
+
+plt.figure( figsize=(6,6) )
+plt.plot(x, y, c='deepskyblue', marker='o', \
+         ms=10, mfc='paleturquoise', ls='None')
+
+plt.xlabel('x', size=15)
+plt.ylabel('y', size=15)
+plt.title('random position', size=25)
+plt.tight_layout()
+plt.show()
